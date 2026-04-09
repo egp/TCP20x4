@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  host-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build host test scaffold
+        run: |
+          mkdir -p build
+          printf '%s\n' 'int main() { return 0; }' > build/host_smoke.cpp
+          g++ -std=c++17 -Wall -Wextra -Werror build/host_smoke.cpp -o build/host_smoke
+          ./build/host_smoke
+
+  arduino-compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Arduino CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR="$HOME/bin" sh
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Install AVR core
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
+
+      - name: Compile HardwareSmoke
+        run: |
+          arduino-cli compile --fqbn arduino:avr:uno examples/HardwareSmoke
