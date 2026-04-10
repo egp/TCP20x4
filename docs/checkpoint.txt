@@ -1,0 +1,71 @@
+# checkpoint.txt v1
+Project: TCP20x4, a lean Arduino library for 20x4 HD44780-compatible LCDs via PCF8574 I2C backpack.
+Repo: https://github.com/egp/TCP20x4
+Architecture: cache-first host-testable core + thin hardware/device layer.
+Primary API direction: line-oriented writes, not incremental character editing.
+
+Requirements implemented so far in tests/core:
+- 4x20 cached display image is the source of truth.
+- writeLine(line,text): line must be 0..3; text > 20 chars is error; shorter text pads with spaces to the right.
+- clearLine(line) and clear() operate on cache and mark lines dirty.
+- displayOff preserves cache; write while off updates cache only; displayOn forces redraw from cache.
+- brightness/backlight API only if the hardware supports it
+- No scrolling or font work planned for v1; built-in LCD character generator is sufficient.
+
+Testing status:
+- Host WB tests exist for core initial state, writeLine, clear/clearLine, display state.
+- Host BB test exists for controller API using a fake device.
+- All current host tests are green.
+- GitHub Actions CI is green.
+- Makefile is quiet and runs host tests locally.
+
+Key files added/used:
+- src/TCP20x4Status.h
+- src/TCP20x4Core.h / .cpp
+- src/TCP20x4Device.h
+- src/TCP20x4Controller.h / .cpp
+- tests/host/test_WB_tcp20x4_core_initial_state.cpp
+- tests/host/test_WB_tcp20x4_core_write_line.cpp
+- tests/host/test_WB_tcp20x4_core_clear.cpp
+- tests/host/test_WB_tcp20x4_core_display_state.cpp
+- tests/host/test_BB_tcp20x4_controller_api.cpp
+- Makefile
+- .github/workflows/ci.yml
+- docs/requirements.md
+
+Important conventions:
+- From now on, every changed file must have a first-line and last-line comment with filename and incrementing version.
+- Existing pre-convention files are grandfathered in.
+- Encode WB or BB in test filenames.
+- Prefer compact responses.
+- Use red/green cycles, but bigger bites are acceptable when still test-first.
+
+Current design split:
+- TCP20x4Core: pure host-testable state/cache logic.
+- TCP20x4Device: abstract hardware interface for init, display enable, brightness, writeLine.
+- TCP20x4Controller: orchestrates core + device; writes cache first, then syncs hardware by reading cached lines.
+
+What is green now:
+- controller.begin() initializes fake device, syncs brightness/display state, writes blank cached lines.
+- controller.writeLine() writes through cache and syncs immediately when display is on.
+- controller.writeLine() while display is off updates cache only; displayOn() redraws all lines from cache.
+- controller.clearLine(), clear(), setBrightness() sync correctly through fake device.
+
+What is still missing / next work:
+- Real Arduino-facing TCP20x4 class should be adapted to use the controller/device split.
+- Need concrete PCF8574/HD44780 hardware device implementation.
+- Need low-level tests for port encoding / enable pulse / row-to-DDRAM mapping if not already preserved after refactor.
+- Need operator-feedback HardwareSmoke.ino extended beyond simple scaffold to exercise the real device implementation.
+- Need decide actual brightness semantics: most backpacks likely only support binary backlight, not true variable brightness; API may need UnsupportedBrightness for unsupported non-binary levels.
+
+Suggested next task:
+1. Add/finish concrete Arduino device implementation for HD44780 over PCF8574.
+2. Keep hardware layer thin: Wire I2C writes, LCD init sequence, command/data send, display enable, backlight/binary brightness, write full 20-char line from cache.
+3. Add host WB tests for any extracted pure helpers used by the hardware device (bit mapping, pulse sequences, row offsets) before filling in the hardware implementation.
+4. Update HardwareSmoke.ino to exercise begin, writeLine, displayOff/displayOn, and backlight behavior.
+5. Remove everything about brightness. Keep backlight on/off.
+6. Research the web for better HW info, datasheets, etc.
+
+Last provided commit message suggestion:
+TCP20x4: scaffold cache-first core, add host WB/BB tests, and quiet Makefile
+# checkpoint.txt v1
