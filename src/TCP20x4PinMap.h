@@ -1,3 +1,4 @@
+// src/TCP20x4PinMap.h v2
 #ifndef TCP20X4_PIN_MAP_H
 #define TCP20X4_PIN_MAP_H
 
@@ -30,3 +31,4 @@ struct TCP20x4PinMap {
 };
 
 #endif
+// src/TCP20x4PinMap.h v2

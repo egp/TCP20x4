@@ -1,4 +1,4 @@
-// tests/host/test_tcp20x4_core_write_line.cpp v1
+// tests/host/test_WB_tcp20x4_core_write_line.cpp v2
 #include <assert.h>
 #include <string.h>
 
@@ -30,22 +30,17 @@ static void testWriteLineRejectsTooLongInputWithoutPartialUpdate() {
 
   const TCP20x4Status second = core.writeLine(1, "123456789012345678901");
   assert(second == TCP20x4Status::LineTooLong);
-
   assert(strcmp(core.cachedLine(1), "short               ") == 0);
 }
 
 static void testWriteLineRejectsInvalidLine() {
   TCP20x4Core core;
-
-  const TCP20x4Status status = core.writeLine(4, "abc");
-  assert(status == TCP20x4Status::InvalidLine);
+  assert(core.writeLine(4, "abc") == TCP20x4Status::InvalidLine);
 }
 
 static void testWriteLineRejectsNullText() {
   TCP20x4Core core;
-
-  const TCP20x4Status status = core.writeLine(0, nullptr);
-  assert(status == TCP20x4Status::InvalidArgument);
+  assert(core.writeLine(0, nullptr) == TCP20x4Status::InvalidArgument);
 }
 
 int main() {
@@ -55,4 +50,4 @@ int main() {
   testWriteLineRejectsNullText();
   return 0;
 }
-// tests/host/test_tcp20x4_core_write_line.cpp v1
+// tests/host/test_WB_tcp20x4_core_write_line.cpp v2

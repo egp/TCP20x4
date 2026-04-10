@@ -1,4 +1,4 @@
-// tests/host/test_WB_tcp20x4_core_display_state.cpp v2
+// tests/host/test_WB_tcp20x4_core_display_state.cpp v3
 #include <assert.h>
 #include <string.h>
 
@@ -57,4 +57,4 @@ int main() {
   testBacklightStateCachesOnOff();
   return 0;
 }
-// tests/host/test_WB_tcp20x4_core_display_state.cpp v2
+// tests/host/test_WB_tcp20x4_core_display_state.cpp v3
