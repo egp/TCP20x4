@@ -1,10 +1,8 @@
+// src/TCP20x4.cpp v2
 #include "TCP20x4.h"
 
 TCP20x4::TCP20x4(TwoWire& wire, uint8_t i2cAddress, const TCP20x4PinMap& pinMap)
-    : wire_(wire),
-      i2cAddress_(i2cAddress),
-      pinMap_(pinMap),
-      core_() {}
+    : wire_(wire), i2cAddress_(i2cAddress), pinMap_(pinMap), core_() {}
 
 TCP20x4Status TCP20x4::begin() {
   wire_.begin();
@@ -52,19 +50,19 @@ TCP20x4Status TCP20x4::displayOff() {
 }
 
 TCP20x4Status TCP20x4::backlightOn() {
-  return setBrightness(255);
-}
-
-TCP20x4Status TCP20x4::backlightOff() {
-  return setBrightness(0);
-}
-
-TCP20x4Status TCP20x4::setBrightness(uint8_t level) {
-  const TCP20x4Status status = core_.setBrightness(level);
+  const TCP20x4Status status = core_.backlightOn();
   if (status != TCP20x4Status::Ok) {
     return status;
   }
-  return syncBrightnessFromCache();
+  return syncBacklightFromCache();
+}
+
+TCP20x4Status TCP20x4::backlightOff() {
+  const TCP20x4Status status = core_.backlightOff();
+  if (status != TCP20x4Status::Ok) {
+    return status;
+  }
+  return syncBacklightFromCache();
 }
 
 const TCP20x4Core& TCP20x4::core() const {
@@ -80,7 +78,7 @@ TCP20x4Status TCP20x4::syncDisplayFromCache() {
   return TCP20x4Status::NotImplemented;
 }
 
-TCP20x4Status TCP20x4::syncBrightnessFromCache() {
+TCP20x4Status TCP20x4::syncBacklightFromCache() {
   return TCP20x4Status::NotImplemented;
 }
 
@@ -98,3 +96,4 @@ TCP20x4Status TCP20x4::writeExpander(uint8_t value) {
   (void)value;
   return TCP20x4Status::NotImplemented;
 }
+// src/TCP20x4.cpp v2

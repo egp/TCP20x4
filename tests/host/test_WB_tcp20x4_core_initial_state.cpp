@@ -1,3 +1,4 @@
+// tests/host/test_WB_tcp20x4_core_initial_state.cpp v2
 #include <assert.h>
 #include <string.h>
 
@@ -8,7 +9,7 @@ static void testInitialState() {
 
   assert(!core.isInitialized());
   assert(core.isDisplayEnabled());
-  assert(core.brightness() == 255);
+  assert(core.isBacklightEnabled());
   assert(core.isFullRedrawNeeded());
 
   for (uint8_t row = 0; row < TCP20x4Core::kRows; ++row) {
@@ -31,3 +32,4 @@ int main() {
   testInitialState();
   return 0;
 }
+// tests/host/test_WB_tcp20x4_core_initial_state.cpp v2

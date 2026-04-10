@@ -1,4 +1,4 @@
-// src/TCP20x4Controller.cpp v1
+// src/TCP20x4Controller.cpp v2
 #include "TCP20x4Controller.h"
 
 TCP20x4Controller::TCP20x4Controller(TCP20x4Device& device)
@@ -15,7 +15,7 @@ TCP20x4Status TCP20x4Controller::begin() {
     return status;
   }
 
-  status = syncBrightnessFromCache();
+  status = syncBacklightFromCache();
   if (status != TCP20x4Status::Ok) {
     return status;
   }
@@ -91,20 +91,21 @@ TCP20x4Status TCP20x4Controller::displayOff() {
 }
 
 TCP20x4Status TCP20x4Controller::backlightOn() {
-  return setBrightness(255);
-}
-
-TCP20x4Status TCP20x4Controller::backlightOff() {
-  return setBrightness(0);
-}
-
-TCP20x4Status TCP20x4Controller::setBrightness(uint8_t level) {
-  const TCP20x4Status status = core_.setBrightness(level);
+  const TCP20x4Status status = core_.backlightOn();
   if (status != TCP20x4Status::Ok) {
     return status;
   }
 
-  return syncBrightnessFromCache();
+  return syncBacklightFromCache();
+}
+
+TCP20x4Status TCP20x4Controller::backlightOff() {
+  const TCP20x4Status status = core_.backlightOff();
+  if (status != TCP20x4Status::Ok) {
+    return status;
+  }
+
+  return syncBacklightFromCache();
 }
 
 const TCP20x4Core& TCP20x4Controller::core() const {
@@ -138,7 +139,7 @@ TCP20x4Status TCP20x4Controller::syncDisplayFromCache() {
   return TCP20x4Status::Ok;
 }
 
-TCP20x4Status TCP20x4Controller::syncBrightnessFromCache() {
-  return device_.setBrightness(core_.brightness());
+TCP20x4Status TCP20x4Controller::syncBacklightFromCache() {
+  return device_.setBacklightEnabled(core_.isBacklightEnabled());
 }
-// src/TCP20x4Controller.cpp v1
+// src/TCP20x4Controller.cpp v2

@@ -1,3 +1,4 @@
+// src/TCP20x4.h v2
 #ifndef TCP20X4_H
 #define TCP20X4_H
 
@@ -9,7 +10,7 @@
 #include "TCP20x4Status.h"
 
 class TCP20x4 {
- public:
+public:
   TCP20x4(TwoWire& wire, uint8_t i2cAddress, const TCP20x4PinMap& pinMap);
 
   TCP20x4Status begin();
@@ -20,15 +21,13 @@ class TCP20x4 {
   TCP20x4Status displayOff();
   TCP20x4Status backlightOn();
   TCP20x4Status backlightOff();
-  TCP20x4Status setBrightness(uint8_t level);
 
   const TCP20x4Core& core() const;
 
- private:
+private:
   TCP20x4Status syncLineFromCache(uint8_t line);
   TCP20x4Status syncDisplayFromCache();
-  TCP20x4Status syncBrightnessFromCache();
-
+  TCP20x4Status syncBacklightFromCache();
   TCP20x4Status sendCommand(uint8_t command);
   TCP20x4Status sendData(uint8_t data);
   TCP20x4Status writeExpander(uint8_t value);
@@ -40,3 +39,4 @@ class TCP20x4 {
 };
 
 #endif
+// src/TCP20x4.h v2

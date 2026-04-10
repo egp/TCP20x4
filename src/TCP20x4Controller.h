@@ -1,4 +1,4 @@
-// src/TCP20x4Controller.h v1
+// src/TCP20x4Controller.h v2
 #ifndef TCP20X4_CONTROLLER_H
 #define TCP20X4_CONTROLLER_H
 
@@ -9,7 +9,7 @@
 #include "TCP20x4Status.h"
 
 class TCP20x4Controller {
- public:
+public:
   explicit TCP20x4Controller(TCP20x4Device& device);
 
   TCP20x4Status begin();
@@ -20,18 +20,17 @@ class TCP20x4Controller {
   TCP20x4Status displayOff();
   TCP20x4Status backlightOn();
   TCP20x4Status backlightOff();
-  TCP20x4Status setBrightness(uint8_t level);
 
   const TCP20x4Core& core() const;
 
- private:
+private:
   TCP20x4Status syncLineFromCache(uint8_t line);
   TCP20x4Status syncDisplayFromCache();
-  TCP20x4Status syncBrightnessFromCache();
+  TCP20x4Status syncBacklightFromCache();
 
   TCP20x4Device& device_;
   TCP20x4Core core_;
 };
 
 #endif
-// src/TCP20x4Controller.h v1
+// src/TCP20x4Controller.h v2

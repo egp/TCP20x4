@@ -1,10 +1,11 @@
+// examples/HardwareSmoke/HardwareSmoke.ino v2
 #include <Wire.h>
 
 #include <TCP20x4.h>
 
 namespace {
-constexpr uint8_t kI2cAddress = 0x27;
 
+constexpr uint8_t kI2cAddress = 0x27;
 TCP20x4 lcd(Wire, kI2cAddress, TCP20x4PinMap::CommonYwRobot());
 
 const char* statusName(TCP20x4Status status) {
@@ -21,8 +22,6 @@ const char* statusName(TCP20x4Status status) {
       return "NotInitialized";
     case TCP20x4Status::TransportError:
       return "TransportError";
-    case TCP20x4Status::UnsupportedBrightness:
-      return "UnsupportedBrightness";
     case TCP20x4Status::NotImplemented:
       return "NotImplemented";
     default:
@@ -35,6 +34,7 @@ void printStatus(const char* label, TCP20x4Status status) {
   Serial.print(": ");
   Serial.println(statusName(status));
 }
+
 }  // namespace
 
 void setup() {
@@ -52,3 +52,4 @@ void setup() {
 
 void loop() {
 }
+// examples/HardwareSmoke/HardwareSmoke.ino v2

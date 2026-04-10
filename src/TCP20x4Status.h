@@ -1,3 +1,4 @@
+// src/TCP20x4Status.h v2
 #ifndef TCP20X4_STATUS_H
 #define TCP20X4_STATUS_H
 
@@ -10,8 +11,8 @@ enum class TCP20x4Status : uint8_t {
   InvalidArgument,
   NotInitialized,
   TransportError,
-  UnsupportedBrightness,
   NotImplemented
 };
 
 #endif
+// src/TCP20x4Status.h v2

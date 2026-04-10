@@ -1,5 +1,6 @@
-// tests/host/test_BB_tcp20x4_controller_api.cpp v1
+// tests/host/test_BB_tcp20x4_controller_api.cpp v2
 #include <assert.h>
+#include <stdint.h>
 #include <string.h>
 
 #include <string>
@@ -13,7 +14,7 @@ struct WriteRecord {
 };
 
 class FakeDevice : public TCP20x4Device {
- public:
+public:
   TCP20x4Status initialize() override {
     ++initializeCount;
     return TCP20x4Status::Ok;
@@ -24,8 +25,8 @@ class FakeDevice : public TCP20x4Device {
     return TCP20x4Status::Ok;
   }
 
-  TCP20x4Status setBrightness(uint8_t level) override {
-    brightnessCalls.push_back(level);
+  TCP20x4Status setBacklightEnabled(bool enabled) override {
+    backlightCalls.push_back(enabled ? 1 : 0);
     return TCP20x4Status::Ok;
   }
 
@@ -36,13 +37,13 @@ class FakeDevice : public TCP20x4Device {
 
   void resetLogs() {
     displayCalls.clear();
-    brightnessCalls.clear();
+    backlightCalls.clear();
     writes.clear();
   }
 
   int initializeCount = 0;
   std::vector<int> displayCalls;
-  std::vector<uint8_t> brightnessCalls;
+  std::vector<int> backlightCalls;
   std::vector<WriteRecord> writes;
 };
 
@@ -51,14 +52,15 @@ static void testBeginSyncsBlankDisplayAndDefaults() {
   TCP20x4Controller controller(device);
 
   assert(controller.begin() == TCP20x4Status::Ok);
-
   assert(device.initializeCount == 1);
+
   assert(device.displayCalls.size() == 1);
   assert(device.displayCalls[0] == 1);
-  assert(device.brightnessCalls.size() == 1);
-  assert(device.brightnessCalls[0] == 255);
-  assert(device.writes.size() == TCP20x4Core::kRows);
 
+  assert(device.backlightCalls.size() == 1);
+  assert(device.backlightCalls[0] == 1);
+
+  assert(device.writes.size() == TCP20x4Core::kRows);
   for (uint8_t row = 0; row < TCP20x4Core::kRows; ++row) {
     assert(device.writes[row].line == row);
     assert(device.writes[row].text == "                    ");
@@ -74,8 +76,8 @@ static void testWriteLineWritesThroughCacheWhenVisible() {
   device.resetLogs();
 
   assert(controller.writeLine(1, "abc") == TCP20x4Status::Ok);
-
   assert(strcmp(controller.core().cachedLine(1), "abc                 ") == 0);
+
   assert(device.writes.size() == 1);
   assert(device.writes[0].line == 1);
   assert(device.writes[0].text == "abc                 ");
@@ -112,7 +114,7 @@ static void testWriteWhileHiddenDefersUntilDisplayOn() {
   }
 }
 
-static void testClearAndBrightnessSync() {
+static void testClearAndBacklightSync() {
   FakeDevice device;
   TCP20x4Controller controller(device);
 
@@ -137,16 +139,20 @@ static void testClearAndBrightnessSync() {
 
   device.resetLogs();
 
-  assert(controller.setBrightness(17) == TCP20x4Status::Ok);
-  assert(device.brightnessCalls.size() == 1);
-  assert(device.brightnessCalls[0] == 17);
+  assert(controller.backlightOff() == TCP20x4Status::Ok);
+  assert(device.backlightCalls.size() == 1);
+  assert(device.backlightCalls[0] == 0);
+
+  assert(controller.backlightOn() == TCP20x4Status::Ok);
+  assert(device.backlightCalls.size() == 2);
+  assert(device.backlightCalls[1] == 1);
 }
 
 int main() {
   testBeginSyncsBlankDisplayAndDefaults();
   testWriteLineWritesThroughCacheWhenVisible();
   testWriteWhileHiddenDefersUntilDisplayOn();
-  testClearAndBrightnessSync();
+  testClearAndBacklightSync();
   return 0;
 }
-// tests/host/test_BB_tcp20x4_controller_api.cpp v1
+// tests/host/test_BB_tcp20x4_controller_api.cpp v2

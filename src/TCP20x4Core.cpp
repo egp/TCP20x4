@@ -1,7 +1,8 @@
-// src/TCP20x4Core.cpp v4
+// src/TCP20x4Core.cpp v5
 #include "TCP20x4Core.h"
 
 namespace {
+
 void fillLineWithSpaces(char* line, uint8_t cols) {
   for (uint8_t i = 0; i < cols; ++i) {
     line[i] = ' ';
@@ -25,12 +26,13 @@ TCP20x4Status validateAndMeasureLineText(const char* text, uint8_t maxLen, uint8
   *outLen = len;
   return TCP20x4Status::Ok;
 }
+
 }  // namespace
 
 TCP20x4Core::TCP20x4Core()
     : initialized_(false),
       displayEnabled_(true),
-      brightness_(255),
+      backlightEnabled_(true),
       fullRedrawNeeded_(true) {
   for (uint8_t row = 0; row < kRows; ++row) {
     fillLineWithSpaces(cache_[row], kCols);
@@ -41,6 +43,7 @@ TCP20x4Core::TCP20x4Core()
 TCP20x4Status TCP20x4Core::initialize() {
   initialized_ = true;
   displayEnabled_ = true;
+  backlightEnabled_ = true;
   fullRedrawNeeded_ = true;
 
   for (uint8_t row = 0; row < kRows; ++row) {
@@ -104,8 +107,13 @@ TCP20x4Status TCP20x4Core::displayOff() {
   return TCP20x4Status::Ok;
 }
 
-TCP20x4Status TCP20x4Core::setBrightness(uint8_t level) {
-  brightness_ = level;
+TCP20x4Status TCP20x4Core::backlightOn() {
+  backlightEnabled_ = true;
+  return TCP20x4Status::Ok;
+}
+
+TCP20x4Status TCP20x4Core::backlightOff() {
+  backlightEnabled_ = false;
   return TCP20x4Status::Ok;
 }
 
@@ -117,8 +125,8 @@ bool TCP20x4Core::isDisplayEnabled() const {
   return displayEnabled_;
 }
 
-uint8_t TCP20x4Core::brightness() const {
-  return brightness_;
+bool TCP20x4Core::isBacklightEnabled() const {
+  return backlightEnabled_;
 }
 
 const char* TCP20x4Core::cachedLine(uint8_t line) const {
@@ -152,4 +160,4 @@ void TCP20x4Core::markAllClean() {
   }
   fullRedrawNeeded_ = false;
 }
-// src/TCP20x4Core.cpp v4
+// src/TCP20x4Core.cpp v5
