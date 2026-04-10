@@ -32,6 +32,7 @@ jobs:
           arduino-cli core install arduino:avr
 
       - name: Compile HardwareSmoke
-        run: |
-          arduino-cli compile --fqbn arduino:avr:uno examples/HardwareSmoke
+      run: |
+          arduino-cli compile --fqbn arduino:avr:uno --library . examples/HardwareSmoke
+
 # .github/workflows/ci.yml v2
