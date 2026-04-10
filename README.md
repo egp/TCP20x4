@@ -1,81 +1,129 @@
 # TCP20x4
 
-`TCP20x4` is an Arduino library for 20x4 HD44780-compatible character LCDs
-driven through a PCF8574 I2C backpack.
+`TCP20x4` is a lean Arduino library for 20x4 HD44780-compatible character LCDs driven through a PCF8574 I2C backpack.
 
-## Goals
+## Status
 
-- Keep the Arduino/Wire/PCF8574 layer as thin as possible
-- Keep LCD addressing and bit-mapping logic host-testable on macOS and CI
-- Provide a hardware smoke sketch for first-board bring-up
-- Start with explicit backpack pin mapping rather than fragile auto-detection
+The library is now at a usable v1 state:
 
-## Planned structure
+- host tests are green
+- GitHub Actions is green
+- Arduino example compilation is green
+- `HardwareSmoke` has been validated on Arduino UNO R3 and UNO R4 WiFi with a working 20x4 backpacked display
 
-- `src/` — thin Arduino-facing API and PCF8574 transport
-- `test/` or host-test directory — pure C++ helpers and host-side tests
-- `examples/HardwareSmoke` — manual hardware verification sketch
-- `docs/project_plan.md` — phased implementation plan
-- `docs/requirements.md` — initial requirements baseline
+## Design goals
 
-## Initial assumptions
+- Keep the public API small and line-oriented
+- Keep hardware-agnostic logic host-testable
+- Keep the Arduino/Wire/PCF8574 layer thin
+- Treat backpack wiring details as configuration, not as universal constants
+- Provide a practical bring-up sketch for real hardware
 
-The target hardware model is:
+## Architecture
 
-- PCF8574 or PCF8574A I2C I/O expander
-- HD44780-compatible 20x4 LCD controller
-- 4-bit LCD interface via backpack wiring
+The implementation is split into three layers:
 
-The backpack-to-LCD pin mapping is treated as configuration, not as a fixed
-universal standard.
+1. `TCP20x4Core`
+   - pure host-testable cache/state logic
+   - validates line writes
+   - pads shorter lines to 20 columns
+   - preserves cached content while the display is off
+   - forces redraw from cache when display is turned back on
 
-## Development strategy
+2. `TCP20x4Controller`
+   - orchestrates cache-first behavior
+   - updates the core first, then syncs hardware through a device interface
 
-The implementation should be split into two layers:
+3. `TCP20x4Pcf8574Device`
+   - concrete Arduino/Wire-backed device for HD44780 over PCF8574
+   - handles I2C writes, LCD initialization, command/data emission, backlight on/off, and full-line writes
 
-1. A very thin hardware layer that performs:
-   - `Wire` setup
-   - PCF8574 byte writes
-   - LCD timing delays
-   - minimal API glue
+## Public API
 
-2. A host-testable core that performs:
-   - row-to-DDRAM address mapping
-   - nibble/bit encoding
-   - enable pulse sequencing
-   - backlight polarity handling
-   - any other logic not requiring Arduino headers or hardware access
+Primary operations:
 
-## Early roadmap
+- `begin()`
+- `writeLine(line, text)`
+- `clear()`
+- `clearLine(line)`
+- `displayOn()`
+- `displayOff()`
+- `backlightOn()`
+- `backlightOff()`
 
-Phase 0:
-- repository scaffold
-- documentation
-- CI
-- smoke sketch
+Behavior:
 
-Phase 1:
-- explicit pin-map configuration
-- 4-bit LCD initialization
-- clear/home/setCursor/write
-- backlight control
+- valid lines are `0..3`
+- lines longer than 20 characters return an error
+- shorter lines are padded on the right with spaces
+- the cache is the source of truth
+- writes while display is off update cache only
+- `displayOn()` redraws from cache
 
-Phase 2:
-- host-side tests for row offsets, pulse sequences, and pin maps
-- optional convenience constructors for common backpack layouts
+## Hardware configuration
 
-## Hardware smoke sketch
+The backpack is configured explicitly rather than auto-detected.
 
-`examples/HardwareSmoke/HardwareSmoke.ino` is the first manual validation tool.
-Its early purpose is to verify:
+`TCP20x4Pcf8574Config` includes:
 
-- I2C connectivity
-- display initialization
-- backlight control
-- row addressing
-- basic text output
+- I2C address
+- backpack pin map
+- backlight polarity
+- row offsets
+
+Provided convenience preset:
+
+- `TCP20x4Pcf8574Config::CommonYwRobot(address)`
+
+The common default row offsets for a 20x4 display are:
+
+- `0x00`
+- `0x40`
+- `0x14`
+- `0x54`
+
+## Non-goals for v1
+
+Out of scope for this release:
+
+- scrolling features
+- font management
+- general custom glyph facilities
+- brightness/PWM control
+- software “180 degree rotation”
+
+Note: physical upside-down mounting of an HD44780 character LCD is not corrected in software. Mechanical orientation must be handled physically.
+
+## Example
+
+See:
+
+- `examples/HardwareSmoke/HardwareSmoke.ino`
+
+This sketch is intended for first-board bring-up and diagnostics. It supports:
+
+- I2C scanning of common PCF8574 address ranges
+- `begin()` and demo writes
+- display on/off
+- backlight on/off
+- direct line writes through the serial monitor
+
+## Development/testing
+
+Host-side tests cover:
+
+- core initial state
+- line validation and padding
+- clear and clearLine behavior
+- display-off/display-on cache semantics
+- controller black-box behavior
+- PCF8574 transport helper behavior
+
+CI runs:
+
+- host tests
+- Arduino example compile
 
 ## Repository
 
-Remote:
-`https://github.com/egp/TCP20x4`
+- Remote: `https://github.com/egp/TCP20x4`

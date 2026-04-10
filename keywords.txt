@@ -1,0 +1,28 @@
+TCP20x4	KEYWORD1
+TCP20x4Core	KEYWORD1
+TCP20x4Controller	KEYWORD1
+TCP20x4Pcf8574Device	KEYWORD1
+TCP20x4Pcf8574Config	KEYWORD1
+TCP20x4PinMap	KEYWORD1
+TCP20x4Status	KEYWORD1
+
+begin	KEYWORD2
+writeLine	KEYWORD2
+clear	KEYWORD2
+clearLine	KEYWORD2
+displayOn	KEYWORD2
+displayOff	KEYWORD2
+backlightOn	KEYWORD2
+backlightOff	KEYWORD2
+core	KEYWORD2
+
+CommonYwRobot	KEYWORD2
+FromAddressAndPinMap	KEYWORD2
+
+Ok	LITERAL1
+InvalidLine	LITERAL1
+LineTooLong	LITERAL1
+InvalidArgument	LITERAL1
+NotInitialized	LITERAL1
+TransportError	LITERAL1
+NotImplemented	LITERAL1
