@@ -1,46 +1,53 @@
 #include <Wire.h>
 
+#include <TCP20x4.h>
+
 namespace {
-constexpr uint8_t kPossibleAddresses[] = {0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27,
-                                          0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F};
+constexpr uint8_t kI2cAddress = 0x27;
 
-bool i2cPresent(uint8_t addr) {
-  Wire.beginTransmission(addr);
-  return Wire.endTransmission() == 0;
-}
+TCP20x4 lcd(Wire, kI2cAddress, TCP20x4PinMap::CommonYwRobot());
 
-int8_t findBackpack() {
-  for (uint8_t i = 0; i < sizeof(kPossibleAddresses); ++i) {
-    if (i2cPresent(kPossibleAddresses[i])) {
-      return static_cast<int8_t>(kPossibleAddresses[i]);
-    }
+const char* statusName(TCP20x4Status status) {
+  switch (status) {
+    case TCP20x4Status::Ok:
+      return "Ok";
+    case TCP20x4Status::InvalidLine:
+      return "InvalidLine";
+    case TCP20x4Status::LineTooLong:
+      return "LineTooLong";
+    case TCP20x4Status::InvalidArgument:
+      return "InvalidArgument";
+    case TCP20x4Status::NotInitialized:
+      return "NotInitialized";
+    case TCP20x4Status::TransportError:
+      return "TransportError";
+    case TCP20x4Status::UnsupportedBrightness:
+      return "UnsupportedBrightness";
+    case TCP20x4Status::NotImplemented:
+      return "NotImplemented";
+    default:
+      return "Unknown";
   }
-  return -1;
 }
+
+void printStatus(const char* label, TCP20x4Status status) {
+  Serial.print(label);
+  Serial.print(": ");
+  Serial.println(statusName(status));
 }
+}  // namespace
 
 void setup() {
   Serial.begin(115200);
-  Wire.begin();
-
   delay(200);
-  Serial.println();
-  Serial.println("TCP20x4 HardwareSmoke");
-  Serial.println("Scanning for PCF8574 / PCF8574A backpack...");
 
-  const int8_t found = findBackpack();
-  if (found < 0) {
-    Serial.println("No backpack found at 0x20..0x27 or 0x38..0x3F");
-    return;
-  }
-
-  Serial.print("Found backpack at 0x");
-  if (found < 16) {
-    Serial.print('0');
-  }
-  Serial.println(found, HEX);
-
-  Serial.println("Next step: add raw port write test and LCD init test.");
+  printStatus("begin", lcd.begin());
+  printStatus("writeLine(0)", lcd.writeLine(0, "stub line 0"));
+  printStatus("writeLine(1)", lcd.writeLine(1, "stub line 1"));
+  printStatus("displayOff", lcd.displayOff());
+  printStatus("displayOn", lcd.displayOn());
+  printStatus("backlightOff", lcd.backlightOff());
+  printStatus("backlightOn", lcd.backlightOn());
 }
 
 void loop() {

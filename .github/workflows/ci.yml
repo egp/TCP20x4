@@ -1,3 +1,4 @@
+# .github/workflows/ci.yml v2
 name: CI
 
 on:
@@ -11,12 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build host test scaffold
-        run: |
-          mkdir -p build
-          printf '%s\n' 'int main() { return 0; }' > build/host_smoke.cpp
-          g++ -std=c++17 -Wall -Wextra -Werror build/host_smoke.cpp -o build/host_smoke
-          ./build/host_smoke
+      - name: Build and run host tests
+        run: make test
 
   arduino-compile:
     runs-on: ubuntu-latest
@@ -37,3 +34,4 @@ jobs:
       - name: Compile HardwareSmoke
         run: |
           arduino-cli compile --fqbn arduino:avr:uno examples/HardwareSmoke
+# .github/workflows/ci.yml v2
