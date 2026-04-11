@@ -1,8 +1,5 @@
-// examples/HardwareSmoke/HardwareSmoke.ino v3
-#include <stdio.h>
-#include <string.h>
-#include <Wire.h>
-
+#include <Arduino.h>
+#include <BitBang_I2C.h>
 #include <TCP20x4.h>
 
 namespace {
@@ -11,14 +8,22 @@ constexpr uint8_t kConfiguredAddress = 0x27;
 constexpr bool kConfiguredBacklightActiveHigh = true;
 constexpr size_t kCommandBufferSize = 64;
 
+// Set these to the pins you want for the LCD bit-banged I2C bus.
+constexpr uint8_t kBusSdaPin = 10;
+constexpr uint8_t kBusSclPin = 11;
+constexpr uint32_t kBusFrequencyHz = 100000;
+
 TCP20x4Pcf8574Config makeLcdConfig() {
-  TCP20x4Pcf8574Config config = TCP20x4Pcf8574Config::CommonYwRobot(kConfiguredAddress);
+  TCP20x4Pcf8574Config config =
+      TCP20x4Pcf8574Config::CommonYwRobot(kConfiguredAddress);
   config.pinMap.backlightActiveHigh = kConfiguredBacklightActiveHigh;
   return config;
 }
 
 const TCP20x4Pcf8574Config kLcdConfig = makeLcdConfig();
-TCP20x4 lcd(Wire, kLcdConfig);
+
+BBI2C lcdBus{};
+TCP20x4 lcd(lcdBus, kLcdConfig);
 char commandBuffer[kCommandBufferSize];
 
 const char* statusName(TCP20x4Status status) {
@@ -55,6 +60,18 @@ void printHexByte(uint8_t value) {
   Serial.print(value, HEX);
 }
 
+void setupLcdBus() {
+  memset(&lcdBus, 0, sizeof(lcdBus));
+  lcdBus.bWire = 0;  // use bit-banged I2C
+  lcdBus.iSDA = kBusSdaPin;
+  lcdBus.iSCL = kBusSclPin;
+  I2CInit(&lcdBus, kBusFrequencyHz);
+}
+
+bool addressPresent(const uint8_t* map, uint8_t address) {
+  return (map[address >> 3] & (1u << (address & 0x07))) != 0;
+}
+
 void printPrompt() {
   Serial.println();
   Serial.println("> ? for help");
@@ -62,26 +79,24 @@ void printPrompt() {
 
 void printHelp() {
   Serial.println("Commands:");
-  Serial.println("  ?          help");
-  Serial.println("  s          scan common PCF8574 ranges");
-  Serial.println("  r          re-run begin() and demo lines");
-  Serial.println("  c          clear");
-  Serial.println("  o          display off");
-  Serial.println("  n          display on");
-  Serial.println("  b          backlight off");
-  Serial.println("  B          backlight on");
-  Serial.println("  0 text     write line 0");
-  Serial.println("  1 text     write line 1");
-  Serial.println("  2 text     write line 2");
-  Serial.println("  3 text     write line 3");
+  Serial.println(" ? help");
+  Serial.println(" s scan common PCF8574 ranges");
+  Serial.println(" r re-run begin() and demo lines");
+  Serial.println(" c clear");
+  Serial.println(" o display off");
+  Serial.println(" n display on");
+  Serial.println(" b backlight off");
+  Serial.println(" B backlight on");
+  Serial.println(" 0 text write line 0");
+  Serial.println(" 1 text write line 1");
+  Serial.println(" 2 text write line 2");
+  Serial.println(" 3 text write line 3");
 }
 
-void scanRange(uint8_t first, uint8_t last) {
+void scanRange(const uint8_t* map, uint8_t first, uint8_t last) {
   for (uint8_t address = first; address <= last; ++address) {
-    Wire.beginTransmission(address);
-    const uint8_t rc = Wire.endTransmission();
-    if (rc == 0) {
-      Serial.print("  found 0x");
+    if (addressPresent(map, address)) {
+      Serial.print(" found 0x");
       printHexByte(address);
       Serial.println();
     }
@@ -89,10 +104,13 @@ void scanRange(uint8_t first, uint8_t last) {
 }
 
 void scanCommonPcf8574Addresses() {
-  Wire.begin();
+  uint8_t map[16];
+  memset(map, 0, sizeof(map));
+  I2CScan(&lcdBus, map);
+
   Serial.println("Scanning 0x20-0x27 and 0x38-0x3F");
-  scanRange(0x20, 0x27);
-  scanRange(0x38, 0x3F);
+  scanRange(map, 0x20, 0x27);
+  scanRange(map, 0x38, 0x3F);
 }
 
 void runDemo() {
@@ -184,6 +202,8 @@ void setup() {
   Serial.begin(115200);
   delay(200);
 
+  setupLcdBus();
+
   Serial.println();
   Serial.println("TCP20x4 HardwareSmoke");
   Serial.print("Configured address: 0x");
@@ -191,6 +211,10 @@ void setup() {
   Serial.println();
   Serial.print("Backlight polarity: ");
   Serial.println(kLcdConfig.pinMap.backlightActiveHigh ? "active high" : "active low");
+  Serial.print("SDA pin: ");
+  Serial.println(kBusSdaPin);
+  Serial.print("SCL pin: ");
+  Serial.println(kBusSclPin);
 
   scanCommonPcf8574Addresses();
   printHelp();
@@ -203,4 +227,3 @@ void loop() {
     handleCommand(commandBuffer);
   }
 }
-// examples/HardwareSmoke/HardwareSmoke.ino v3
