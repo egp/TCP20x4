@@ -1,16 +1,16 @@
-// src/TCP20x4Pcf8574Device.h v1
+// src/TCP20x4Pcf8574Device.h v2
 #ifndef TCP20X4_PCF8574_DEVICE_H
 #define TCP20X4_PCF8574_DEVICE_H
 
 #include <Arduino.h>
-#include <Wire.h>
+#include <BitBang_I2C.h>
 
 #include "TCP20x4Device.h"
 #include "TCP20x4Pcf8574Config.h"
 
 class TCP20x4Pcf8574Device : public TCP20x4Device {
 public:
-  TCP20x4Pcf8574Device(TwoWire& wire, const TCP20x4Pcf8574Config& config);
+  TCP20x4Pcf8574Device(BBI2C& i2c, const TCP20x4Pcf8574Config& config);
 
   TCP20x4Status initialize() override;
   TCP20x4Status setDisplayEnabled(bool enabled) override;
@@ -26,7 +26,7 @@ private:
   TCP20x4Status setCursor(uint8_t line, uint8_t column);
   uint8_t applyBacklightToIdleByte(uint8_t value) const;
 
-  TwoWire& wire_;
+  BBI2C& i2c_;
   TCP20x4Pcf8574Config config_;
   uint8_t portState_;
   bool initialized_;
@@ -34,4 +34,4 @@ private:
 };
 
 #endif
-// src/TCP20x4Pcf8574Device.h v1
+// src/TCP20x4Pcf8574Device.h v2

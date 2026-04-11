@@ -1,9 +1,9 @@
-// src/TCP20x4.h v3
+// src/TCP20x4.h v4
 #ifndef TCP20X4_H
 #define TCP20X4_H
 
 #include <Arduino.h>
-#include <Wire.h>
+#include <BitBang_I2C.h>
 
 #include "TCP20x4Controller.h"
 #include "TCP20x4Core.h"
@@ -14,8 +14,8 @@
 
 class TCP20x4 {
 public:
-  TCP20x4(TwoWire& wire, const TCP20x4Pcf8574Config& config);
-  TCP20x4(TwoWire& wire, uint8_t i2cAddress, const TCP20x4PinMap& pinMap);
+  TCP20x4(BBI2C& i2c, const TCP20x4Pcf8574Config& config);
+  TCP20x4(BBI2C& i2c, uint8_t i2cAddress, const TCP20x4PinMap& pinMap);
 
   TCP20x4Status begin();
   TCP20x4Status writeLine(uint8_t line, const char* text);
@@ -34,4 +34,4 @@ private:
 };
 
 #endif
-// src/TCP20x4.h v3
+// src/TCP20x4.h v4

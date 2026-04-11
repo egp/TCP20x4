@@ -1,26 +1,25 @@
-// src/TCP20x4Pcf8574Device.cpp v1
+// src/TCP20x4Pcf8574Device.cpp v2
 #include "TCP20x4Pcf8574Device.h"
 
 #include "TCP20x4Core.h"
 #include "TCP20x4Pcf8574Transport.h"
 
 namespace {
-
 uint8_t backlightMask(const TCP20x4PinMap& pinMap) {
   return static_cast<uint8_t>(1u << pinMap.backlight);
 }
-
 }  // namespace
 
-TCP20x4Pcf8574Device::TCP20x4Pcf8574Device(TwoWire& wire, const TCP20x4Pcf8574Config& config)
-    : wire_(wire),
+TCP20x4Pcf8574Device::TCP20x4Pcf8574Device(
+    BBI2C& i2c,
+    const TCP20x4Pcf8574Config& config)
+    : i2c_(i2c),
       config_(config),
       portState_(0),
       initialized_(false),
       backlightEnabled_(true) {}
 
 TCP20x4Status TCP20x4Pcf8574Device::initialize() {
-  wire_.begin();
   initialized_ = false;
   backlightEnabled_ = true;
   portState_ = applyBacklightToIdleByte(0);
@@ -50,24 +49,28 @@ TCP20x4Status TCP20x4Pcf8574Device::initialize() {
     return status;
   }
 
-  status = command(0x28);
+  status = command(0x28);  // 4-bit, 2-line, 5x8 dots
   if (status != TCP20x4Status::Ok) {
     return status;
   }
-  status = command(0x08);
+
+  status = command(0x08);  // display off
   if (status != TCP20x4Status::Ok) {
     return status;
   }
-  status = command(0x01);
+
+  status = command(0x01);  // clear
   if (status != TCP20x4Status::Ok) {
     return status;
   }
   delayMicroseconds(2000);
-  status = command(0x06);
+
+  status = command(0x06);  // entry mode set
   if (status != TCP20x4Status::Ok) {
     return status;
   }
-  status = command(0x0C);
+
+  status = command(0x0C);  // display on, cursor off, blink off
   if (status != TCP20x4Status::Ok) {
     return status;
   }
@@ -80,7 +83,6 @@ TCP20x4Status TCP20x4Pcf8574Device::setDisplayEnabled(bool enabled) {
   if (!initialized_) {
     return TCP20x4Status::NotInitialized;
   }
-
   return command(enabled ? 0x0C : 0x08);
 }
 
@@ -110,7 +112,7 @@ TCP20x4Status TCP20x4Pcf8574Device::writeLine(uint8_t line, const char* text) {
   }
 
   for (uint8_t col = 0; col < TCP20x4Core::kCols; ++col) {
-    const char ch = text[col] == '\0' ? ' ' : text[col];
+    const char ch = (text[col] == '\0') ? ' ' : text[col];
     status = data(static_cast<uint8_t>(ch));
     if (status != TCP20x4Status::Ok) {
       return status;
@@ -121,11 +123,9 @@ TCP20x4Status TCP20x4Pcf8574Device::writeLine(uint8_t line, const char* text) {
 }
 
 TCP20x4Status TCP20x4Pcf8574Device::writePort(uint8_t value) {
-  wire_.beginTransmission(config_.address);
-  if (wire_.write(value) != 1) {
-    return TCP20x4Status::TransportError;
-  }
-  if (wire_.endTransmission() != 0) {
+  uint8_t data[1] = {value};
+  const int written = I2CWrite(&i2c_, config_.address, data, 1);
+  if (written != 1) {
     return TCP20x4Status::TransportError;
   }
 
@@ -134,21 +134,24 @@ TCP20x4Status TCP20x4Pcf8574Device::writePort(uint8_t value) {
 }
 
 TCP20x4Status TCP20x4Pcf8574Device::writeNibble(bool rs, uint8_t nibble) {
-  const TCP20x4Pcf8574PulseTriplet triplet = TCP20x4Pcf8574MakePulseTriplet(
-      config_.pinMap,
-      rs,
-      false,
-      static_cast<uint8_t>(nibble & 0x0F),
-      backlightEnabled_);
+  const TCP20x4Pcf8574PulseTriplet triplet =
+      TCP20x4Pcf8574MakePulseTriplet(
+          config_.pinMap,
+          rs,
+          false,
+          static_cast<uint8_t>(nibble & 0x0F),
+          backlightEnabled_);
 
   TCP20x4Status status = writePort(triplet.before);
   if (status != TCP20x4Status::Ok) {
     return status;
   }
+
   status = writePort(triplet.high);
   if (status != TCP20x4Status::Ok) {
     return status;
   }
+
   status = writePort(triplet.after);
   if (status != TCP20x4Status::Ok) {
     return status;
@@ -195,17 +198,17 @@ TCP20x4Status TCP20x4Pcf8574Device::setCursor(uint8_t line, uint8_t column) {
     return TCP20x4Status::InvalidArgument;
   }
 
-  const uint8_t address = static_cast<uint8_t>(TCP20x4Pcf8574RowAddress(config_, line) + column);
+  const uint8_t address =
+      static_cast<uint8_t>(TCP20x4Pcf8574RowAddress(config_, line) + column);
   return command(static_cast<uint8_t>(0x80 | address));
 }
 
 uint8_t TCP20x4Pcf8574Device::applyBacklightToIdleByte(uint8_t value) const {
   if (backlightEnabled_ == config_.pinMap.backlightActiveHigh) {
-    value |= backlightMask(config_.pinMap);
+    value = static_cast<uint8_t>(value | backlightMask(config_.pinMap));
   } else {
-    value &= static_cast<uint8_t>(~backlightMask(config_.pinMap));
+    value = static_cast<uint8_t>(value & static_cast<uint8_t>(~backlightMask(config_.pinMap)));
   }
-
   return value;
 }
-// src/TCP20x4Pcf8574Device.cpp v1
+// src/TCP20x4Pcf8574Device.cpp v2
