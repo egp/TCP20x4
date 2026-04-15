@@ -3,7 +3,7 @@
 #define TCP20X4_PCF8574_DEVICE_H
 
 #include <Arduino.h>
-#include <TCP1819C.h>
+#include <TCP1819.h>
 
 #include "TCP20x4Device.h"
 #include "TCP20x4Pcf8574Config.h"
