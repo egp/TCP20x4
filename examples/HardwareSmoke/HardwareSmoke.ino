@@ -15,7 +15,7 @@ constexpr uint32_t kBusFrequencyHz = 100000;
 
 TCP20x4Pcf8574Config makeLcdConfig() {
   TCP20x4Pcf8574Config config =
-      // TCP20x4Pcf8574Config::CommonYwRobot(kConfiguredAddress);
+      TCP20x4Pcf8574Config::CommonYwRobot(kConfiguredAddress);
   config.pinMap.backlightActiveHigh = kConfiguredBacklightActiveHigh;
   return config;
 }
