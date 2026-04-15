@@ -3,7 +3,7 @@
 #define TCP20X4_H
 
 #include <Arduino.h>
-#include <BitBang_I2C.h>
+#include <TCP1819.h>
 
 #include "TCP20x4Controller.h"
 #include "TCP20x4Core.h"
