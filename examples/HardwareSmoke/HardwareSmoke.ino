@@ -9,8 +9,8 @@ constexpr bool kConfiguredBacklightActiveHigh = true;
 constexpr size_t kCommandBufferSize = 64;
 
 // Set these to the pins you want for the LCD bit-banged I2C bus.
-constexpr uint8_t kBusSdaPin = 5;
-constexpr uint8_t kBusSclPin = 6;
+constexpr uint8_t kBusSdaPin = 9;
+constexpr uint8_t kBusSclPin = 10;
 constexpr uint32_t kBusFrequencyHz = 100000;
 
 TCP20x4Pcf8574Config makeLcdConfig() {
