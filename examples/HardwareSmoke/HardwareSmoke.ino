@@ -62,7 +62,7 @@ void printHexByte(uint8_t value) {
 
 void setupLcdBus() {
   memset(&lcdBus, 0, sizeof(lcdBus));
-  lcdBus.bWire = 0;  // use bit-banged I2C
+  lcdBus.bWire = 0;  // use TCP1819 software I2C
   lcdBus.iSDA = kBusSdaPin;
   lcdBus.iSCL = kBusSclPin;
   I2CInit(&lcdBus, kBusFrequencyHz);
