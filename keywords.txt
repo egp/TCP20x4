@@ -26,3 +26,4 @@ InvalidArgument	LITERAL1
 NotInitialized	LITERAL1
 TransportError	LITERAL1
 NotImplemented	LITERAL1
+UnsupportedBrightness LITERAL1
