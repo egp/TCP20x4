@@ -14,5 +14,18 @@ enum class TCP20x4Status : uint8_t {
   NotImplemented
 };
 
+// const char* TCP20x4StatusName(TCP20x4Status status) {
+//   switch (status) {
+//     case TCP20x4Status::Ok: return "Ok";
+//     case TCP20x4Status::InvalidLine: return "InvalidLine";
+//     case TCP20x4Status::LineTooLong: return "LineTooLong";
+//     case TCP20x4Status::InvalidArgument: return "InvalidArgument";
+//     case TCP20x4Status::NotInitialized: return "NotInitialized";
+//     case TCP20x4Status::TransportError: return "TransportError";
+//     case TCP20x4Status::NotImplemented: return "NotImplemented";
+//     default: return "Unknown";
+//   }
+// }
+
 #endif
 // src/TCP20x4Status.h v2
